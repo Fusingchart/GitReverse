@@ -25,7 +25,7 @@ export class GitService {
     } catch (error: unknown) {
       if (error instanceof Error) {
         const stderr = (error as { stderr?: string }).stderr;
-        throw new Error(stderr || error.message);
+        throw new Error(`[Git Command Failed: ${cmd}] ${stderr || error.message}`);
       }
       throw error;
     }
@@ -240,11 +240,16 @@ export class GitService {
     const dateStr = commit.date.toISOString();
     const env = {
       GIT_AUTHOR_DATE: dateStr,
-      GIT_COMMITTER_DATE: dateStr
+      GIT_COMMITTER_DATE: dateStr,
+      GIT_AUTHOR_NAME: 'Ghost Engineer',
+      GIT_AUTHOR_EMAIL: 'ghost@internals.io',
+      GIT_COMMITTER_NAME: 'Ghost Engineer',
+      GIT_COMMITTER_EMAIL: 'ghost@internals.io'
     };
 
     await this.runCommand(`git add -f "${commit.file}"`, targetPath);
-    await this.runCommand(`git commit -m "${commit.message}"`, targetPath, env);
+    // Use --allow-empty to avoid failure if the file copy resulted in no changes (e.g. re-running on same dir)
+    await this.runCommand(`git commit --allow-empty -m "${commit.message}"`, targetPath, env);
   }
 
   /**
