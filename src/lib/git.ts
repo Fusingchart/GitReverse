@@ -38,7 +38,8 @@ export class GitService {
     const entries = await fs.readdir(dir, { withFileTypes: true });
     const files = await Promise.all(entries.map(async (entry) => {
       const res = path.resolve(dir, entry.name);
-      if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === '.next' || entry.name === 'dist') {
+      const ignoredNames = ['.git', 'node_modules', '.next', 'dist', '.DS_Store', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'];
+      if (ignoredNames.includes(entry.name) || entry.name.startsWith('.env')) {
         return [];
       }
       return entry.isDirectory() ? this.getFileList(res, baseDir) : [path.relative(baseDir, res)];
@@ -242,7 +243,7 @@ export class GitService {
       GIT_COMMITTER_DATE: dateStr
     };
 
-    await this.runCommand(`git add "${commit.file}"`, targetPath);
+    await this.runCommand(`git add -f "${commit.file}"`, targetPath);
     await this.runCommand(`git commit -m "${commit.message}"`, targetPath, env);
   }
 
