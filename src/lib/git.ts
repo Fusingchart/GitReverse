@@ -258,7 +258,7 @@ export class GitService {
   static async initRepo(targetPath: string): Promise<void> {
     await fs.mkdir(targetPath, { recursive: true });
     try {
-      await this.runCommand('git init', targetPath);
+      await this.runCommand('git init -b main', targetPath);
     } catch {
       // Already initialized or failed, ignore
     }
