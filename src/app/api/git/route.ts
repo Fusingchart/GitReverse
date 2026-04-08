@@ -3,7 +3,7 @@ import { GitService } from '@/lib/git';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { sourcePath, targetPath, startDate } = body;
+  const { sourcePath, targetPath, startDate, remoteUrl } = body;
 
   if (!sourcePath || !targetPath || !startDate) {
     return NextResponse.json({ error: 'Source, target, and start date are required' }, { status: 400 });
@@ -26,10 +26,20 @@ export async function POST(req: NextRequest) {
       await GitService.executeRetroCommit(sourcePath, targetPath, commit);
     }
 
+    // 4. Push to remote if provided
+    if (remoteUrl) {
+      try {
+        await GitService.runCommand(`git remote add origin ${remoteUrl}`, targetPath);
+      } catch {
+        // If remote exists, just try to push
+      }
+      await GitService.runCommand('git push -u origin main -f', targetPath);
+    }
+
     return NextResponse.json({ 
       success: true, 
       commitCount: schedule.length,
-      message: `Successfully generated ${schedule.length} commits.`
+      message: `Successfully generated ${schedule.length} commits${remoteUrl ? ' and pushed to remote' : ''}.`
     });
   } catch (error: unknown) {
     console.error('Generation Error:', error);
