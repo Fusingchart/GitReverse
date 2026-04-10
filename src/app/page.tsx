@@ -11,6 +11,7 @@ interface CommitSchedule {
 export default function Home() {
   const [sourcePath, setSourcePath] = useState('');
   const [targetPath, setTargetPath] = useState('');
+  const [remoteUrl, setRemoteUrl] = useState('');
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 1);
@@ -52,7 +53,7 @@ export default function Home() {
       const res = await fetch('/api/git', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourcePath, targetPath, startDate }),
+        body: JSON.stringify({ sourcePath, targetPath, startDate, remoteUrl }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -104,6 +105,17 @@ export default function Home() {
                 placeholder="/absolute/path/to/new/repo" 
                 value={targetPath}
                 onChange={(e) => setTargetPath(e.target.value)}
+                className="font-mono text-xs"
+              />
+            </div>
+
+            <div className="input-group">
+              <label>Remote Repository URL (Optional)</label>
+              <input 
+                type="text" 
+                placeholder="https://github.com/user/repo.git" 
+                value={remoteUrl}
+                onChange={(e) => setRemoteUrl(e.target.value)}
                 className="font-mono text-xs"
               />
             </div>
