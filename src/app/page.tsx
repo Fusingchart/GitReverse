@@ -17,6 +17,8 @@ export default function Home() {
     d.setMonth(d.getMonth() - 1);
     return d.toISOString().split('T')[0];
   });
+  const [authorName, setAuthorName] = useState('');
+  const [authorEmail, setAuthorEmail] = useState('');
   const [schedule, setSchedule] = useState<CommitSchedule[]>([]);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -56,7 +58,7 @@ export default function Home() {
       const res = await fetch('/api/git', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourcePath, targetPath, startDate, remoteUrl }),
+        body: JSON.stringify({ sourcePath, targetPath, startDate, remoteUrl, authorName, authorEmail }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -99,6 +101,29 @@ export default function Home() {
                 onChange={(e) => setSourcePath(e.target.value)}
                 className="font-mono text-xs"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="input-group">
+                <label>Author Name</label>
+                <input 
+                  type="text" 
+                  placeholder="John Doe" 
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  className="font-mono text-xs"
+                />
+              </div>
+              <div className="input-group">
+                <label>Author Email</label>
+                <input 
+                  type="text" 
+                  placeholder="john@example.com" 
+                  value={authorEmail}
+                  onChange={(e) => setAuthorEmail(e.target.value)}
+                  className="font-mono text-xs"
+                />
+              </div>
             </div>
 
             <div className="input-group">
