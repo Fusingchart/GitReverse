@@ -32,6 +32,19 @@ export class GitService {
   }
 
   /**
+   * Get the current global git user
+   */
+  static async getCurrentUser(): Promise<{ name: string, email: string }> {
+    try {
+      const name = await this.runCommand('git config user.name', process.cwd());
+      const email = await this.runCommand('git config user.email', process.cwd());
+      return { name: name || 'Ghost Engineer', email: email || 'ghost@internals.io' };
+    } catch {
+      return { name: 'Ghost Engineer', email: 'ghost@internals.io' };
+    }
+  }
+
+  /**
    * Recursively get all files in a directory (excluding .git and node_modules)
    */
   static async getFileList(dir: string, baseDir: string = dir): Promise<string[]> {
@@ -272,7 +285,13 @@ export class GitService {
   /**
    * Execute a retroactive commit
    */
-  static async executeRetroCommit(sourcePath: string, targetPath: string, commit: CommitSchedule): Promise<void> {
+  static async executeRetroCommit(
+    sourcePath: string, 
+    targetPath: string, 
+    commit: CommitSchedule,
+    authorName?: string,
+    authorEmail?: string
+  ): Promise<void> {
     const sourceFile = path.join(sourcePath, commit.file);
     const targetFile = path.join(targetPath, commit.file);
 
@@ -282,15 +301,24 @@ export class GitService {
     // Copy file
     await fs.copyFile(sourceFile, targetFile);
 
+    // Get fallback identity if needed
+    let name = authorName;
+    let email = authorEmail;
+    if (!name || !email) {
+      const current = await this.getCurrentUser();
+      name = name || current.name;
+      email = email || current.email;
+    }
+
     // Git commands
     const dateStr = commit.date.toISOString();
     const env = {
       GIT_AUTHOR_DATE: dateStr,
       GIT_COMMITTER_DATE: dateStr,
-      GIT_AUTHOR_NAME: 'Ghost Engineer',
-      GIT_AUTHOR_EMAIL: 'ghost@internals.io',
-      GIT_COMMITTER_NAME: 'Ghost Engineer',
-      GIT_COMMITTER_EMAIL: 'ghost@internals.io'
+      GIT_AUTHOR_NAME: name,
+      GIT_AUTHOR_EMAIL: email,
+      GIT_COMMITTER_NAME: name,
+      GIT_COMMITTER_EMAIL: email
     };
 
     await this.runCommand(`git add -f "${commit.file}"`, targetPath);
