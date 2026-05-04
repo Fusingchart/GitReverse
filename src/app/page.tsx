@@ -32,11 +32,14 @@ export default function Home() {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourcePath, startDate }),
+        body: JSON.stringify({ sourcePath, targetPath, startDate }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setSchedule(data.schedule);
+      if (data.fileCount === 0 && data.totalFiles > 0) {
+        setSuccess('All files are already present in target.');
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
