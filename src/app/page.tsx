@@ -70,178 +70,285 @@ export default function Home() {
     }
   };
 
+  const uniqueDays = new Set(schedule.map(c => new Date(c.date).toDateString())).size;
+
   return (
-    <div className="container p-8 max-w-6xl mx-auto">
-      <header className="mb-12 animate-fade-in relative">
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/20 rounded-full blur-[100px] -z-10" />
-        <h1 className="text-5xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white via-primary to-accent mb-3">
-          GitGhost
-        </h1>
-        <p className="text-slate-400 max-w-2xl text-lg font-light leading-relaxed">
-          Synthetic history synthesizer for legacy codebase reconstruction. 
-          Analyze dependencies, simulate Poisson-distributed commit entropy, and reconstruct a logical development timeline.
-        </p>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Configuration Panel */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="card glass-container border-primary/20">
-            <h2 className="text-xs uppercase tracking-[0.2em] font-bold text-primary mb-6 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Reconstruction Parameters
-            </h2>
-            
-            <div className="input-group">
-              <label>Source Codebase Path</label>
-              <input 
-                type="text" 
-                placeholder="/absolute/path/to/finished/app" 
-                value={sourcePath}
-                onChange={(e) => setSourcePath(e.target.value)}
-                className="font-mono text-xs"
-              />
+    <div className="app-wrapper">
+      <div className="app-container">
+        {/* ── Header ── */}
+        <header className="app-header">
+          <div className="logo-container">
+            <div className="logo-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 3v6M12 15v6" />
+                <path d="M5.636 5.636l4.243 4.243M14.121 14.121l4.243 4.243" />
+                <path d="M3 12h6M15 12h6" />
+              </svg>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="input-group">
-                <label>Author Name</label>
-                <input 
-                  type="text" 
-                  placeholder="John Doe" 
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  className="font-mono text-xs"
-                />
-              </div>
-              <div className="input-group">
-                <label>Author Email</label>
-                <input 
-                  type="text" 
-                  placeholder="john@example.com" 
-                  value={authorEmail}
-                  onChange={(e) => setAuthorEmail(e.target.value)}
-                  className="font-mono text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label>Target Repository Path</label>
-              <input 
-                type="text" 
-                placeholder="/absolute/path/to/new/repo" 
-                value={targetPath}
-                onChange={(e) => setTargetPath(e.target.value)}
-                className="font-mono text-xs"
-              />
-            </div>
-
-            <div className="input-group">
-              <label>Remote Repository URL (Optional)</label>
-              <input 
-                type="text" 
-                placeholder="https://github.com/user/repo.git" 
-                value={remoteUrl}
-                onChange={(e) => setRemoteUrl(e.target.value)}
-                className="font-mono text-xs"
-              />
-            </div>
-
-            <div className="input-group">
-              <label>Simulated Start Date</label>
-              <input 
-                type="date" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="font-mono"
-              />
-            </div>
-
-            <div className="space-y-4 pt-4">
-              <button 
-                className="btn btn-secondary w-full justify-center group"
-                onClick={handlePreview}
-                disabled={loading || generating || !sourcePath}
-              >
-                {loading ? 'Analyzing Graph...' : 'Preview Synthesis'}
-                <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-
-              <button 
-                className="btn btn-primary w-full justify-center shadow-lg shadow-primary/20"
-                onClick={handleGenerate}
-                disabled={loading || generating || !targetPath || schedule.length === 0}
-              >
-                {generating ? 'Reconstructing...' : 'Execute Ghosting'}
-              </button>
-            </div>
+            <h1 className="logo-text">GitGhost</h1>
           </div>
+          <p className="app-subtitle">
+            Reconstruct synthetic development timelines with dependency-aware ordering and Poisson-distributed commit schedules.
+          </p>
+          <div className="header-divider" />
+        </header>
 
-          {error && (
-            <div className="card border-error/50 text-error text-xs bg-error/10 animate-fade-in border-l-4">
-              <div className="font-bold mb-1">SYSTEM_ERROR</div>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="card border-success/50 text-success text-xs bg-success/10 animate-fade-in border-l-4">
-              <div className="font-bold mb-1">SYNTHESIS_COMPLETE</div>
-              {success}
-            </div>
-          )}
-        </div>
-
-        {/* Timeline Visualization */}
-        <div className="lg:col-span-8">
-          <div className="card glass-container min-h-[600px] border-white/5">
-            <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
-              <div>
-                <h2 className="text-xl font-semibold">Synthetic Timeline</h2>
-                <p className="text-xs text-slate-500 mt-1">
-                  Dependency-sorted commit sequence with Poisson jitter
-                </p>
+        {/* ── Main Layout ── */}
+        <div className="main-grid">
+          {/* ── Config Panel ── */}
+          <aside>
+            <div className="panel">
+              <div className="panel-header">
+                <div className="panel-icon config">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </div>
+                <span className="panel-title">Configuration</span>
               </div>
-              <div className="text-right">
-                <span className="text-[10px] font-mono bg-white/5 border border-white/10 px-3 py-1 rounded-full text-slate-400">
-                  {schedule.length} ATOMIC_CHUNKS
-                </span>
+
+              {/* Source Path */}
+              <div className="field">
+                <label className="field-label" htmlFor="source-path">Source Codebase</label>
+                <input
+                  id="source-path"
+                  type="text"
+                  className="field-input"
+                  placeholder="/path/to/finished/project"
+                  value={sourcePath}
+                  onChange={(e) => setSourcePath(e.target.value)}
+                />
               </div>
+
+              {/* Author Fields */}
+              <div className="field-row">
+                <div className="field">
+                  <label className="field-label" htmlFor="author-name">Author Name</label>
+                  <input
+                    id="author-name"
+                    type="text"
+                    className="field-input"
+                    placeholder="Jane Doe"
+                    value={authorName}
+                    onChange={(e) => setAuthorName(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label className="field-label" htmlFor="author-email">Author Email</label>
+                  <input
+                    id="author-email"
+                    type="text"
+                    className="field-input"
+                    placeholder="jane@dev.io"
+                    value={authorEmail}
+                    onChange={(e) => setAuthorEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Target Path */}
+              <div className="field">
+                <label className="field-label" htmlFor="target-path">Target Repository</label>
+                <input
+                  id="target-path"
+                  type="text"
+                  className="field-input"
+                  placeholder="/path/to/new/repo"
+                  value={targetPath}
+                  onChange={(e) => setTargetPath(e.target.value)}
+                />
+              </div>
+
+              {/* Remote URL */}
+              <div className="field">
+                <label className="field-label" htmlFor="remote-url">
+                  Remote URL
+                  <span style={{ opacity: 0.5, fontWeight: 400, marginLeft: 6 }}>optional</span>
+                </label>
+                <input
+                  id="remote-url"
+                  type="text"
+                  className="field-input"
+                  placeholder="https://github.com/user/repo.git"
+                  value={remoteUrl}
+                  onChange={(e) => setRemoteUrl(e.target.value)}
+                />
+              </div>
+
+              {/* Date */}
+              <div className="field">
+                <label className="field-label" htmlFor="start-date">Start Date</label>
+                <input
+                  id="start-date"
+                  type="date"
+                  className="field-input"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="btn-group">
+                <button
+                  className="btn btn-secondary"
+                  onClick={handlePreview}
+                  disabled={loading || generating || !sourcePath}
+                  id="preview-btn"
+                >
+                  {loading ? (
+                    <>
+                      <span className="btn-spinner" />
+                      Analyzing…
+                    </>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                      </svg>
+                      Preview
+                    </>
+                  )}
+                </button>
+
+                <button
+                  className="btn btn-primary"
+                  onClick={handleGenerate}
+                  disabled={loading || generating || !targetPath || schedule.length === 0}
+                  id="execute-btn"
+                >
+                  {generating ? (
+                    <>
+                      <span className="btn-spinner" />
+                      Ghosting…
+                    </>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                      Execute
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Progress bar when generating */}
+              {generating && (
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: '60%', animation: 'indeterminate 1.5s ease-in-out infinite' }} />
+                </div>
+              )}
+
+              {/* Alerts */}
+              {error && (
+                <div className="alert alert-error">
+                  <svg className="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {success && (
+                <div className="alert alert-success">
+                  <svg className="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  <span>{success}</span>
+                </div>
+              )}
             </div>
+          </aside>
+
+          {/* ── Timeline Panel ── */}
+          <div className="panel timeline-panel">
+            <div className="panel-header">
+              <div className="panel-icon timeline">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <span className="panel-title">Synthetic Timeline</span>
+              {schedule.length > 0 && (
+                <span className="panel-badge">{schedule.length} commits</span>
+              )}
+            </div>
+
+            {/* Stats */}
+            {schedule.length > 0 && (
+              <div className="stats-bar">
+                <div className="stat-chip">
+                  <span className="stat-dot" />
+                  {schedule.length} files
+                </div>
+                <div className="stat-chip cyan">
+                  <span className="stat-dot" />
+                  {uniqueDays} days
+                </div>
+              </div>
+            )}
 
             {schedule.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-600 py-32 grayscale opacity-50">
-                <div className="relative mb-8">
-                   <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              <div className="empty-state">
+                <div className="empty-icon-wrapper">
+                  <div className="empty-icon-glow" />
+                  <svg className="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
                   </svg>
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
                 </div>
-                <p className="font-mono text-sm tracking-widest uppercase">Awaiting parameter input</p>
+                <div className="empty-title">No schedule yet</div>
+                <p className="empty-desc">
+                  Configure your source path and click Preview to generate a synthetic commit timeline.
+                </p>
               </div>
             ) : (
-              <div className="timeline-container max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
-                <div className="timeline">
+              <div className="timeline-scroll">
+                <div className="timeline-list">
                   {schedule.map((commit, index) => (
-                    <div key={index} className="timeline-item animate-fade-in group" style={{ animationDelay: `${index * 20}ms` }}>
-                      <div className="timeline-dot pending group-hover:scale-125 transition-transform" />
-                      <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-mono text-xs text-foreground font-bold tracking-tight">{commit.message}</h4>
-                          <span className="text-[9px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20 uppercase tracking-widest">
-                            Ready
-                          </span>
+                    <div
+                      key={index}
+                      className="commit-entry"
+                      style={{ animationDelay: `${Math.min(index * 25, 800)}ms` }}
+                    >
+                      <div className="commit-dot" />
+                      <div className="commit-card">
+                        <div className="commit-message">
+                          <span>{commit.message}</span>
+                          <span className="commit-status">queued</span>
                         </div>
-                        <div className="flex gap-4 text-[10px] text-slate-500 font-mono">
-                          <span className="flex items-center gap-1.5">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2" /></svg>
-                            {new Date(commit.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                        <div className="commit-meta">
+                          <span className="commit-meta-item">
+                            <svg className="commit-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                              <line x1="16" y1="2" x2="16" y2="6" />
+                              <line x1="8" y1="2" x2="8" y2="6" />
+                              <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            {new Date(commit.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                           </span>
-                          <span className="flex items-center gap-1.5 truncate max-w-[200px]">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" strokeWidth="2" /></svg>
+                          <span className="commit-meta-item">
+                            <svg className="commit-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            {new Date(commit.date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <span className="commit-meta-item commit-file" title={commit.file}>
+                            <svg className="commit-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z" />
+                              <polyline points="14 2 14 8 20 8" />
+                            </svg>
                             {commit.file}
                           </span>
                         </div>
@@ -254,22 +361,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: var(--primary);
-        }
-      `}</style>
     </div>
   );
 }
