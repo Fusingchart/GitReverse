@@ -132,6 +132,52 @@ export class GitService {
   }
 
   /**
+   * Get files that are new or modified in source relative to target
+   */
+  static async getIncrementalFiles(sourcePath: string, targetPath: string, allFiles: string[]): Promise<string[]> {
+    const newFiles: string[] = [];
+    
+    for (const file of allFiles) {
+      const sourceFile = path.join(sourcePath, file);
+      const targetFile = path.join(targetPath, file);
+      
+      try {
+        const sourceStat = await fs.stat(sourceFile);
+        const targetStat = await fs.stat(targetFile);
+        
+        if (sourceStat.size !== targetStat.size) {
+          newFiles.push(file);
+          continue;
+        }
+
+        // Deep comparison if sizes match
+        const sourceBuf = await fs.readFile(sourceFile);
+        const targetBuf = await fs.readFile(targetFile);
+        if (!sourceBuf.equals(targetBuf)) {
+          newFiles.push(file);
+        }
+      } catch {
+        // File doesn't exist in target
+        newFiles.push(file);
+      }
+    }
+    
+    return newFiles;
+  }
+
+  /**
+   * Get the date of the last commit in the target repository
+   */
+  static async getLastCommitDate(targetPath: string): Promise<Date | null> {
+    try {
+      const output = await this.runCommand('git log -1 --format=%aI', targetPath);
+      return output ? new Date(output) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Generate a schedule of commits using Poisson distribution and working windows
    */
   static generateSchedule(startDate: Date, files: string[]): CommitSchedule[] {
