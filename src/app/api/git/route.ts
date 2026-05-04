@@ -10,18 +10,29 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // 1. Initialize repo
+    // 1. Initialize repo (silent if already exists)
     await GitService.initRepo(targetPath);
 
     // 2. Analyze
-    const files = await GitService.getFileList(sourcePath);
-    const sortedFiles = await GitService.analyzeDependencies(sourcePath, files);
-    const schedule = GitService.generateSchedule(new Date(startDate), sortedFiles);
-
-    // 3. Execute (this could take a while, in a real app we might want to use a background worker or stream progress)
-    // For now, we'll execute all and return success. 
-    // Optimization: The UI can call this in chunks if needed, but for simplicity we do it in one go.
+    const allFiles = await GitService.getFileList(sourcePath);
+    const filesToCommit = await GitService.getIncrementalFiles(sourcePath, targetPath, allFiles);
     
+    if (filesToCommit.length === 0) {
+      return NextResponse.json({ success: true, commitCount: 0, message: 'Codebase is already up to date.' });
+    }
+
+    const sortedFiles = await GitService.analyzeDependencies(sourcePath, filesToCommit);
+    
+    // Start from the last commit date if incremental
+    let effectiveStartDate = new Date(startDate);
+    const lastDate = await GitService.getLastCommitDate(targetPath);
+    if (lastDate && lastDate > effectiveStartDate) {
+      effectiveStartDate = lastDate;
+    }
+
+    const schedule = GitService.generateSchedule(effectiveStartDate, sortedFiles);
+
+    // 3. Execute
     for (const commit of schedule) {
       await GitService.executeRetroCommit(sourcePath, targetPath, commit);
     }
