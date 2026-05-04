@@ -3,7 +3,7 @@ import { GitService } from '@/lib/git';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { sourcePath, targetPath, startDate, remoteUrl } = body;
+  const { sourcePath, targetPath, startDate, remoteUrl, authorName, authorEmail } = body;
 
   if (!sourcePath || !targetPath || !startDate) {
     return NextResponse.json({ error: 'Source, target, and start date are required' }, { status: 400 });
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Execute
     for (const commit of schedule) {
-      await GitService.executeRetroCommit(sourcePath, targetPath, commit);
+      await GitService.executeRetroCommit(sourcePath, targetPath, commit, authorName, authorEmail);
     }
 
     // 4. Push to remote if provided
